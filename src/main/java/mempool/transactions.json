@@ -1,0 +1,72 @@
+{
+
+"tx": {
+  "inputs": [
+    {
+      "utxo": {
+        "ptxid": "12345",
+        "output_index": "0",
+        "amount": "5",
+      },
+      "unlocking_script": "unlocking_script_content"
+    }
+  ],
+  "outputs": [
+    {
+      "index": 0,
+      "amount": "2",
+      "locking_script": "locking_script0_content"
+    },
+    {
+      "index": 1,
+      "amount": "1",
+      "locking_script": "locking_script1_content"
+    },
+    {
+      "index": "2",
+      "amount": "2",
+      "locking_script": "locking_scriptn_content"
+    }
+  ]
+},
+
+"tx2": {
+  "inputs": [
+    {
+      "utxo": {
+        "ptxid": "12345",
+        "output_index": "0",
+        "amount": "5",
+      },
+      "unlocking_script": "unlocking_script_content"
+    }
+  ],
+  "outputs": [
+    {
+      "index": 0,
+      "amount": "2",
+      "locking_script": "locking_script0_content"
+    },
+    {
+      "index": 1,
+      "amount": "1",
+      "locking_script": "locking_script1_content"
+    },
+    {
+      "index": "2",
+      "amount": "2",
+      "locking_script": "locking_scriptn_content"
+    }
+  ]
+},
+
+
+
+
+
+
+
+
+
+
+}
