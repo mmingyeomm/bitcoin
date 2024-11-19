@@ -1,72 +1,133 @@
 {
+  "P2PKH": {
+    "version": 1,
+    "inputs": [
+      {
+        "previous_tx_hash": "7b1eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f3f",
+        "previous_output_index": 0,
+        "unlocking_script": {
+          "scriptSig": [
+            "<signature>",
+            "<public key>"
+          ]
+        },
+        "sequence": "0xffffffff"
+      }
+    ],
+    "outputs": [
+      {
+        "amount": 0.1,
+        "locking_script": {
+          "scriptPubKey": [
+            "OP_DUP",
+            "OP_HASH160",
+            "<public key hash>",
+            "OP_EQUALVERIFY",
+            "OP_CHECKSIG"
+          ]
+        }
+      }
+    ],
+    "locktime": 0
+  },
 
-"tx": {
+  "P2SH": {
+      "version": 1,
+      "inputs": [
+        {
+          "previous_tx_hash": "7b1eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f3f",
+          "previous_output_index": 0,
+          "unlocking_script": {
+            "scriptSig": [
+              "<signature1>",
+              "<signature2>",
+              "<serialized_redeem_script>"
+            ]
+          },
+          "sequence": "0xffffffff"
+        }
+      ],
+      "outputs": [
+        {
+          "amount": 0.1,
+          "locking_script": {
+            "scriptPubKey": [
+              "OP_DUP",
+              "OP_HASH160",
+              "<script_hash>",
+              "OP_EQUAL"
+            ]
+          }
+        }
+      ],
+      "locktime": 0,
+      "example_redeem_script": {
+        "type": "multisig",
+        "script": [
+          "OP_2",
+          "<pubkey1>",
+          "<pubkey2>",
+          "<pubkey3>",
+          "OP_3",
+          "OP_CHECKMULTISIG"
+        ]
+      }
+    },
+
+  "MULTISIG":  {
+  "version": 1,
   "inputs": [
     {
-      "utxo": {
-        "ptxid": "12345",
-        "output_index": "0",
-        "amount": "5",
+      "previous_tx_hash": "7b1eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f3f",
+      "previous_output_index": 0,
+      "unlocking_script": {
+        "scriptSig": [
+          "OP_0",
+          "<signature1>",
+          "<signature2>",
+          "<multisig_script>"
+        ]
       },
-      "unlocking_script": "unlocking_script_content"
+      "sequence": "0xffffffff"
     }
   ],
   "outputs": [
     {
-      "index": 0,
-      "amount": "2",
-      "locking_script": "locking_script0_content"
+      "amount": 0.1,
+      "locking_script": {
+        "scriptPubKey": [
+          "OP_2",
+          "<public_key1>",
+          "<public_key2>",
+          "<public_key3>",
+          "OP_3",
+          "OP_CHECKMULTISIG"
+        ]
+      }
     },
     {
-      "index": 1,
-      "amount": "1",
-      "locking_script": "locking_script1_content"
-    },
-    {
-      "index": "2",
-      "amount": "2",
-      "locking_script": "locking_scriptn_content"
-    }
-  ]
-},
-
-"tx2": {
-  "inputs": [
-    {
-      "utxo": {
-        "ptxid": "12345",
-        "output_index": "0",
-        "amount": "5",
-      },
-      "unlocking_script": "unlocking_script_content"
+      "amount": 0.2,
+      "locking_script": {
+        "scriptPubKey": [
+          "OP_HASH160",
+          "<multisig_script_hash>",
+          "OP_EQUAL"
+        ]
+      }
     }
   ],
-  "outputs": [
-    {
-      "index": 0,
-      "amount": "2",
-      "locking_script": "locking_script0_content"
-    },
-    {
-      "index": 1,
-      "amount": "1",
-      "locking_script": "locking_script1_content"
-    },
-    {
-      "index": "2",
-      "amount": "2",
-      "locking_script": "locking_scriptn_content"
-    }
-  ]
-},
-
-
-
-
-
-
-
-
-
-
+  "locktime": 0,
+  "multisig_redeem_script": {
+    "required_signatures": 2,
+    "total_keys": 3,
+    "script": [
+      "OP_2",
+      "<public_key1>",
+      "<public_key2>",
+      "<public_key3>",
+      "OP_3",
+      "OP_CHECKMULTISIG"
+    ]
+  }
+}
 }
