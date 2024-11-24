@@ -1,65 +1,76 @@
 package network;
 
-import com.google.gson.*;
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import transaction.*;
-import java.util.*;
 
-public class TransactionDeserializer {
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-    public static Transaction deserialize(String jsonStr) {
-        JsonObject jsonObject = JsonParser.parseString(jsonStr).getAsJsonObject();
-        return parseTransaction(jsonObject);
-    }
+public class TransactionDeserializer extends JsonDeserializer<Transaction> {
 
-    private static Transaction parseTransaction(JsonObject txJson) {
-        int version = txJson.get("version").getAsInt();
-        long locktime = txJson.get("locktime").getAsLong();
+    @Override
+    public Transaction deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
+        System.out.println("Deserializer");
+        ObjectMapper mapper = (ObjectMapper) p.getCodec();
 
-        List<Input> inputs = parseInputs(txJson.getAsJsonArray("inputs"));
-        List<Output> outputs = parseOutputs(txJson.getAsJsonArray("outputs"));
+        JsonNode node = mapper.readTree(p);
 
-        return new Transaction(version, inputs, outputs, locktime);
-    }
+        // Parse version
+        int version = node.get("version").asInt();
 
-    private static List<Input> parseInputs(JsonArray inputsJson) {
+        // Parse inputs
         List<Input> inputs = new ArrayList<>();
+        JsonNode inputsNode = node.get("inputs");
+        if (inputsNode.isArray()) {
+            for (JsonNode inputNode : inputsNode) {
+                String prevTxHash = inputNode.get("previous_tx_hash").asText();
+                long prevOutputIndex = inputNode.get("previous_output_index").asLong();
 
-        for (JsonElement inputElement : inputsJson) {
-            JsonObject inputJson = inputElement.getAsJsonObject();
+                // Parse unlocking script
+                JsonNode unlockingScriptNode = inputNode.get("unlockingScript");
+                List<String> scriptSig = new ArrayList<>();
+                if (unlockingScriptNode.get("scriptSig").isArray()) {
+                    for (JsonNode scriptNode : unlockingScriptNode.get("scriptSig")) {
+                        scriptSig.add(scriptNode.asText());
+                    }
+                }
+                UnlockingScript unlockingScript = new UnlockingScript(scriptSig);
 
-            String prevTxHash = inputJson.get("previous_tx_hash").getAsString();
-            long prevOutputIndex = inputJson.get("previous_output_index").getAsLong();
-
-            JsonObject unlockingScriptJson = inputJson.getAsJsonObject("unlocking_script");
-            JsonArray scriptSigArray = unlockingScriptJson.getAsJsonArray("scriptSig");
-
-            List<String> scriptSig = new ArrayList<>();
-            scriptSigArray.forEach(element -> scriptSig.add(element.getAsString()));
-
-            UnlockingScript unlockingScript = new UnlockingScript(scriptSig);
-            inputs.add(new Input(prevTxHash, prevOutputIndex, unlockingScript));
+                inputs.add(new Input(prevTxHash, prevOutputIndex, unlockingScript));
+            }
         }
 
-        return inputs;
-    }
-
-    private static List<Output> parseOutputs(JsonArray outputsJson) {
+        // Parse outputs
         List<Output> outputs = new ArrayList<>();
+        JsonNode outputsNode = node.get("outputs");
+        if (outputsNode.isArray()) {
+            for (JsonNode outputNode : outputsNode) {
+                double amount = outputNode.get("amount").asDouble();
 
-        for (JsonElement outputElement : outputsJson) {
-            JsonObject outputJson = outputElement.getAsJsonObject();
+                // Parse locking script
+                JsonNode lockingScriptNode = outputNode.get("lockingScript");
+                List<String> scriptPubKey = new ArrayList<>();
+                if (lockingScriptNode.get("scriptPubKey").isArray()) {
+                    for (JsonNode scriptNode : lockingScriptNode.get("scriptPubKey")) {
+                        scriptPubKey.add(scriptNode.asText());
+                    }
+                }
+                LockingScript lockingScript = new LockingScript(scriptPubKey);
 
-            double amount = outputJson.get("amount").getAsDouble();
-            JsonObject lockingScriptJson = outputJson.getAsJsonObject("locking_script");
-            JsonArray scriptPubKeyArray = lockingScriptJson.getAsJsonArray("scriptPubKey");
-
-            List<String> scriptPubKey = new ArrayList<>();
-            scriptPubKeyArray.forEach(element -> scriptPubKey.add(element.getAsString()));
-
-            LockingScript lockingScript = new LockingScript(scriptPubKey);
-            outputs.add(new Output(amount, lockingScript));
+                outputs.add(new Output(amount, lockingScript));
+            }
         }
 
-        return outputs;
+        // Parse locktime and type
+        long locktime = node.get("locktime").asLong();
+        String type = node.get("type").asText();
+
+        return new Transaction(version, inputs, outputs, locktime, type);
     }
 }

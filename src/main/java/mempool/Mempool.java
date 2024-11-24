@@ -1,26 +1,136 @@
 package mempool;
 
-import com.sun.net.httpserver.HttpServer;
-import network.RPC;
+import db.Database;
+import opCodeStack.OPCodeStack;
+import transaction.Input;
+import transaction.Output;
+import transaction.Transaction;
+import utxo.UTXO;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
 
 public class Mempool {
+    private Database database;
 
-    public void addRequest(){
+    public Mempool(Database database){
+        this.database = database;
+    }
+
+    private List<Transaction> mempool = new ArrayList<>();
+
+    public boolean addRequest(Transaction tx){
+
+        if (this.ValidateTxInput(tx) ){
+                this.AddtoMempool(tx);
+
+                System.out.println("transaction added to mempool");
+                System.out.println("view mempool");
+                this.viewMempool();
+                return true;
+
+        } else {
+            System.out.println("transaction validation failed");
+            return false;
+        }
 
     }
 
-    private void ValidateTx(){
+    private boolean ValidateTxInput(Transaction tx) {
+        System.out.println("validating tx Input...");
+        List<Input> inputs = tx.getInputs();
+        List<UTXO> utxos = database.getUTXOSet().getUtxos();
+
+
+        for (Input input : inputs) {
+            boolean validInput = false;
+            UTXO currentUTXO = null;
+            OPCodeStack scriptSigStack = new OPCodeStack();
+            OPCodeStack executionStack = new OPCodeStack();
+
+            for (UTXO utxo : utxos) {
+                if (utxo.getTxid().equals(input.getPreviousTxHash()) &&
+                        utxo.getVout() == input.getPreviousOutputIndex()) {
+
+                    System.out.println("utxo" + utxo);
+                    currentUTXO = utxo;
+                    //input validated
+                    validInput = true;
+                    break;
+                }
+
+            }
+            for (int i = 0; i < input.getUnlockingScript().getScriptSig().size(); i++) {
+                scriptSigStack.push(input.getUnlockingScript().getScriptSig().get(i));
+            }
+            System.out.println("input script stack before verify" + scriptSigStack);
+
+            String[] scriptPubKeyOpcodes = currentUTXO.getScriptPubkey().getAsm().split(" ");
+            System.out.println("utxo script stack before verify" + scriptPubKeyOpcodes);
+
+            scriptSigStack.executeCommands();
+            System.out.println("hashed ScriptSigStack" + scriptSigStack);
+
+
+
+
+
+
+            if (!validInput) {
+                System.out.println("Input not found in UTXO set: " + input.getPreviousTxHash());
+                return false;
+            }
+            System.out.println("Input succesfully validated");
+        }
+
+
+        return true;
     }
 
-    private void AddtoMempool(){
 
+    private void AddtoMempool(Transaction tx){
+        mempool.add(tx);
     }
+    public void viewMempool() {
+        if (mempool.isEmpty()) {
+            System.out.println("Mempool is empty");
+            return;
+        }
 
+        for (int i = 0; i < mempool.size(); i++) {
+            Transaction tx = mempool.get(i);
+            System.out.println("\nTransaction #" + (i + 1) + ":");
+            System.out.println("Version: " + tx.getVersion());
+            System.out.println("Type: " + tx.getType());
+            System.out.println("Locktime: " + tx.getLocktime());
 
+            System.out.println("\nInputs:");
+            List<Input> inputs = tx.getInputs();
+            if (inputs != null) {
+                for (int j = 0; j < inputs.size(); j++) {
+                    Input input = inputs.get(j);
+                    System.out.println("  Input #" + (j + 1) + ":");
+                    System.out.println("    Previous TX Hash: " + input.getPreviousTxHash());
+                    System.out.println("    Previous Output Index: " + input.getPreviousOutputIndex());
+                    System.out.println("    Unlocking Script: " + input.getUnlockingScript().getScriptSig());
+                }
+            }
 
+            System.out.println("\nOutputs:");
+            List<Output> outputs = tx.getOutputs();
+            if (outputs != null) {
+                for (int j = 0; j < outputs.size(); j++) {
+                    Output output = outputs.get(j);
+                    System.out.println("  Output #" + (j + 1) + ":");
+                    System.out.println("    Amount: " + output.getAmount());
+                    System.out.println("    Locking Script: " + output.getLockingScript().getScriptPubKey());
+                }
+            }
 
+            System.out.println("\n----------------------------------------");
+        }
+    }
 
 }

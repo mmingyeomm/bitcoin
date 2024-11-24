@@ -1,12 +1,30 @@
-package utxo;
+package utxo;  // or whatever package you're using
 
-public class UTXO {
-    public String txid;
-    public int vout;
-    public double amount;
-    public Map<String, Object> script_pubkey;
-    public String address;
-    public int confirmations;
-    public boolean spendable;
-    public boolean solvable;
+import java.util.List;
+import java.util.Map;
+
+public class UTXOSet {
+    private List<UTXO> utxos;
+    public UTXOSet(){}
+    public UTXOSet(List<UTXO> utxos){
+        this.utxos = utxos;
+    }
+
+    // Getters and Setters
+    public List<UTXO> getUtxos() {
+        return utxos;
+    }
+
+    public void setUtxos(List<UTXO> utxos) {
+        this.utxos = utxos;
+    }
+
+
+
+    @Override
+    public String toString() {
+        return "UTXOSet{" +
+                "utxos=" + utxos +
+                '}';
+    }
 }

@@ -1,9 +1,12 @@
 package network;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import mempool.Mempool;
+import transaction.Transaction;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,12 +39,20 @@ public class RPC {
         }
     }
 
+
     private class TransactionHandler implements HttpHandler {
+        private final ObjectMapper objectMapper;
+
+        public TransactionHandler() {
+            this.objectMapper = new ObjectMapper();
+            SimpleModule module = new SimpleModule();
+            module.addDeserializer(Transaction.class, new TransactionDeserializer());
+            objectMapper.registerModule(module);
+        }
+
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-
             if ("POST".equals(exchange.getRequestMethod())) {
-
                 InputStream is = exchange.getRequestBody();
                 StringBuilder sb = new StringBuilder();
                 byte[] buffer = new byte[1024];
@@ -50,33 +61,34 @@ public class RPC {
                     sb.append(new String(buffer, 0, length));
                 }
 
-                System.out.println("Checking Validity of Transaction: " + sb.toString());
-
-                VerifyTransaction verifyTransaction = new VerifyTransaction();
-
-                boolean isValid = verifyTransaction.isValidTransactionFormat(sb.toString());
-
-                if(isValid){
-                    System.out.println("Valid");
-
-                    mempool.addRequest();
-                    // probably should send to mempool here
+                try {
+                    // Convert JSON string to Transaction object
+                    Transaction transaction = objectMapper.readValue(sb.toString(), Transaction.class);
 
                     System.out.println("Sending to Mempool..");
+                    boolean added = mempool.addRequest(transaction); // Update this method to accept Transaction object
 
+                    if (added) {
+                        System.out.println("transaction successfully added to mempool");
+                    } else {
+                        System.out.println("invalid transaction");
+                    }
 
+                    String response = "Transaction received";
+                    exchange.getResponseHeaders().set("Content-Type", "application/json");
+                    exchange.sendResponseHeaders(200, response.length());
+                    try (OutputStream os = exchange.getResponseBody()) {
+                        os.write(response.getBytes(StandardCharsets.UTF_8));
+                    }
 
-                } else {
-                    System.out.println("InValid");
+                } catch (Exception e) {
+                    String errorResponse = "Error processing transaction: " + e.getMessage();
+                    exchange.getResponseHeaders().set("Content-Type", "application/json");
+                    exchange.sendResponseHeaders(400, errorResponse.length());
+                    try (OutputStream os = exchange.getResponseBody()) {
+                        os.write(errorResponse.getBytes(StandardCharsets.UTF_8));
+                    }
                 }
-
-                String response = "Transaction received";
-                exchange.getResponseHeaders().set("Content-Type", "application/json");
-                exchange.sendResponseHeaders(200, response.length());
-                try (OutputStream os = exchange.getResponseBody()) {
-                    os.write(response.getBytes(StandardCharsets.UTF_8));
-                }
-
 
             } else {
                 String response = "Only POST method allowed";
@@ -87,6 +99,5 @@ public class RPC {
             }
         }
     }
-
 
 }
