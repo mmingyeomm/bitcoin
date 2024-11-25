@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Database {
-    private static final String DB_FILE = "C:\\work\\POJO\\src\\main\\java\\db\\initialUTXOSet.json";
+    private static final String DB_FILE = "src/main/java/db/initialUTXOSet.json";
     private UTXOSet utxoSet;
 
     public Database() {

@@ -5,7 +5,7 @@
       {
         "previous_tx_hash": "7b1eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f3f",
         "previous_output_index": 0,
-        "unlocking_script": {
+        "u  nlocking_script": {
           "scriptSig": [
             "<signature>",
             "<public key>"
@@ -81,11 +81,11 @@
         "amount": 0.1,
         "locking_script": {
           "scriptPubKey": [
-            "OP_2",
+            "<2>",
             "<public_key1>",
             "<public_key2>",
             "<public_key3>",
-            "OP_3",
+            "<3>",
             "OP_CHECKMULTISIG"
           ]
         }

@@ -21,7 +21,7 @@ public class Mempool {
 
     private List<Transaction> mempool = new ArrayList<>();
 
-    public boolean addRequest(Transaction tx){
+    public boolean addRequest(Transaction tx) throws Exception {
 
         if (this.ValidateTxInput(tx) ){
                 this.AddtoMempool(tx);
@@ -38,7 +38,7 @@ public class Mempool {
 
     }
 
-    private boolean ValidateTxInput(Transaction tx) {
+    private boolean ValidateTxInput(Transaction tx) throws Exception {
         System.out.println("validating tx Input...");
         List<Input> inputs = tx.getInputs();
         List<UTXO> utxos = database.getUTXOSet().getUtxos();
@@ -47,32 +47,57 @@ public class Mempool {
         for (Input input : inputs) {
             boolean validInput = false;
             UTXO currentUTXO = null;
-            OPCodeStack scriptSigStack = new OPCodeStack();
-            OPCodeStack executionStack = new OPCodeStack();
-
+            OPCodeStack inputStack = new OPCodeStack();
+            // input의 UTXO가 있나 확인
             for (UTXO utxo : utxos) {
                 if (utxo.getTxid().equals(input.getPreviousTxHash()) &&
                         utxo.getVout() == input.getPreviousOutputIndex()) {
 
-                    System.out.println("utxo" + utxo);
                     currentUTXO = utxo;
-                    //input validated
                     validInput = true;
                     break;
                 }
 
             }
             for (int i = 0; i < input.getUnlockingScript().getScriptSig().size(); i++) {
-                scriptSigStack.push(input.getUnlockingScript().getScriptSig().get(i));
+                inputStack.push(input.getUnlockingScript().getScriptSig().get(i));
             }
-            System.out.println("input script stack before verify" + scriptSigStack);
-
+            System.out.println("input script stack before verify" + inputStack);
+            // 스택을 통해 verify
             String[] scriptPubKeyOpcodes = currentUTXO.getScriptPubkey().getAsm().split(" ");
-            System.out.println("utxo script stack before verify" + scriptPubKeyOpcodes);
 
-            scriptSigStack.executeCommands();
-            System.out.println("hashed ScriptSigStack" + scriptSigStack);
+            for (int i = 0; i < scriptPubKeyOpcodes.length; i++) {
+                if (scriptPubKeyOpcodes[i].startsWith("OP_") ){
+                    String opcode = scriptPubKeyOpcodes[i].substring(3); // "OP_" 이후의 문자열 추출
 
+                    switch (opcode) {
+                        case "CHECKMULTISIG":
+                            inputStack.op_checkmultisig();
+                            System.out.println("Processing CHECKMULTISIG operation");
+                            break;
+                        case "DUP":
+                            System.out.println("Processing DUP operation");
+                            break;
+                        case "HASH160":
+                            System.out.println("Processing HASH160 operation");
+                            break;
+                        case "EQUALVERIFY":
+                            System.out.println("Processing EQUALVERIFY operation");
+                            break;
+                        case "CHECKSIG":
+                            System.out.println("Processing CHECKSIG operation");
+                            break;
+                        default:
+                            System.out.println("Unknown operation: " + opcode);
+                            break;
+                    }
+
+                }
+                else {
+                    inputStack.push(scriptPubKeyOpcodes[i]);
+                }
+
+            }
 
 
 
