@@ -1,7 +1,5 @@
 package opCodeStack;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Stack;
 
 
@@ -19,14 +17,14 @@ public class OPCodeStack extends Stack<String> {
         this.push(top);
     }
 
-    public void op_hash(){
+    public void op_hash160(){
 
         if (this.isEmpty()){
             throw new IllegalStateException("OP_HASH: Stack is empty");
         }
 
         String top = this.pop();
-        String hashedResult = CalculateHash160.calculateHash160(top);
+        String hashedResult = Hash160.calculateHash160(top);
         this.push(hashedResult);
 
         System.out.println("hashedResult" + hashedResult);
@@ -85,7 +83,50 @@ public class OPCodeStack extends Stack<String> {
         return  VerifySignature.verifySignature(pubkey, signature);
     }
 
-    public boolean op_checkmultisig() throws Exception {
+    public void op_checkmultisig() throws Exception {
+        System.out.println("chekcing multisig...");
+
+        if (this.size() < 1) {
+            throw new IllegalStateException("OP_CHECKMULTISIG: Stack is empty");
+        }
+
+        int total_pubkey_count = Integer.parseInt(this.pop());
+        String[] pubKeys = new String[total_pubkey_count];
+
+        for (int i = 0; i < total_pubkey_count; i++) {
+            pubKeys[total_pubkey_count - 1 - i] = this.pop();
+        }
+
+        int required_signature_count = Integer.parseInt(this.pop());
+
+        String[] input_signatures  = new String[required_signature_count];
+        for (int i = 0; i < required_signature_count; i++) {
+            input_signatures[required_signature_count-1 -i] = this.pop();
+        }
+        // dummy 0 제거
+        this.pop();
+
+        int countValidSignatures = 0;
+        for (int i = 0; i < input_signatures.length; i++) {
+
+            for (int j = i + 1; j < pubKeys.length; j++) {
+
+                if (VerifySignature.verifySignature(pubKeys[j], input_signatures[i])) {
+                    countValidSignatures++;
+                    break;
+                }
+            }
+        }
+
+        if (countValidSignatures >= required_signature_count) {
+            this.push("true");
+        } else{
+            this.push("false");
+        }
+
+    }
+
+    public boolean op_checkmultisigverify() throws Exception {
         System.out.println("chekcing multisig...");
 
         if (this.size() < 1) {
@@ -115,17 +156,13 @@ public class OPCodeStack extends Stack<String> {
                     countValidSignatures++;
                     break;
                 }
-
             }
         }
 
-        if (countValidSignatures >= required_signature_count) {
-            return true;
-        } else{
-            return false;
-        }
+        return (countValidSignatures >= required_signature_count);
 
     }
+
 
 
 

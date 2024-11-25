@@ -63,9 +63,11 @@ public class Mempool {
                 inputStack.push(input.getUnlockingScript().getScriptSig().get(i));
             }
             System.out.println("input script stack before verify" + inputStack);
-            // 스택을 통해 verify
+
+
             String[] scriptPubKeyOpcodes = currentUTXO.getScriptPubkey().getAsm().split(" ");
 
+            // 스택을 통해 verify
             for (int i = 0; i < scriptPubKeyOpcodes.length; i++) {
                 if (scriptPubKeyOpcodes[i].startsWith("OP_") ){
                     String opcode = scriptPubKeyOpcodes[i].substring(3); // "OP_" 이후의 문자열 추출
@@ -75,16 +77,24 @@ public class Mempool {
                             inputStack.op_checkmultisig();
                             System.out.println("Processing CHECKMULTISIG operation");
                             break;
+                        case "CHECKMULTISIGVERIFY":
+                            inputStack.op_checkmultisigverify();
+                            System.out.println("Processing CHECKMULTISIGVERIFY operation");
+                            break;
                         case "DUP":
+                            inputStack.op_dup();
                             System.out.println("Processing DUP operation");
                             break;
                         case "HASH160":
+                            inputStack.op_hash160();
                             System.out.println("Processing HASH160 operation");
                             break;
                         case "EQUALVERIFY":
+                            inputStack.op_equalverify();
                             System.out.println("Processing EQUALVERIFY operation");
                             break;
                         case "CHECKSIG":
+                            inputStack.op_checksig();
                             System.out.println("Processing CHECKSIG operation");
                             break;
                         default:
@@ -97,9 +107,20 @@ public class Mempool {
                     inputStack.push(scriptPubKeyOpcodes[i]);
                 }
 
+
+
+
             }
 
+            //밥먹고 할일 각 input마다 스택 보고 true false
+            // ecdsa도 다시
 
+
+
+            System.out.println("input script stack after verify" + inputStack);
+            if (inputStack.size() == 1) {
+                String verify = inputStack.pop();
+            }
 
 
 

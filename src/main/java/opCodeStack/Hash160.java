@@ -4,7 +4,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 
-public class CalculateHash160 {
+public class Hash160 {
 
     public static String calculateHash160(String input) {
         try {
