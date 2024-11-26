@@ -1,6 +1,8 @@
 package mempool;
 
 import db.Database;
+import executionEngine.ExecutionEngine;
+import executionEngine.StackEngine;
 import opCodeStack.OPCodeStack;
 import transaction.Input;
 import transaction.Output;
@@ -26,7 +28,6 @@ public class Mempool {
         if (this.ValidateTxInput(tx) ){
                 this.AddtoMempool(tx);
 
-                System.out.println("transaction added to mempool");
                 System.out.println("view mempool");
                 this.viewMempool();
                 return true;
@@ -39,6 +40,8 @@ public class Mempool {
     }
 
     private boolean ValidateTxInput(Transaction tx) throws Exception {
+        //validate tx 함수가 좀 헤비한 감이 있다.
+
         System.out.println("validating tx Input...");
         List<Input> inputs = tx.getInputs();
         List<UTXO> utxos = database.getUTXOSet().getUtxos();
@@ -46,6 +49,7 @@ public class Mempool {
 
         for (Input input : inputs) {
             boolean validInput = false;
+
             UTXO currentUTXO = null;
             OPCodeStack inputStack = new OPCodeStack();
             // input의 UTXO가 있나 확인
@@ -63,69 +67,31 @@ public class Mempool {
                 inputStack.push(input.getUnlockingScript().getScriptSig().get(i));
             }
             System.out.println("input script stack before verify" + inputStack);
-
-
             String[] scriptPubKeyOpcodes = currentUTXO.getScriptPubkey().getAsm().split(" ");
 
-            // 스택을 통해 verify
-            for (int i = 0; i < scriptPubKeyOpcodes.length; i++) {
-                if (scriptPubKeyOpcodes[i].startsWith("OP_") ){
-                    String opcode = scriptPubKeyOpcodes[i].substring(3); // "OP_" 이후의 문자열 추출
-
-                    switch (opcode) {
-                        case "CHECKMULTISIG":
-                            inputStack.op_checkmultisig();
-                            System.out.println("Processing CHECKMULTISIG operation");
-                            break;
-                        case "CHECKMULTISIGVERIFY":
-                            inputStack.op_checkmultisigverify();
-                            System.out.println("Processing CHECKMULTISIGVERIFY operation");
-                            break;
-                        case "DUP":
-                            inputStack.op_dup();
-                            System.out.println("Processing DUP operation");
-                            break;
-                        case "HASH160":
-                            inputStack.op_hash160();
-                            System.out.println("Processing HASH160 operation");
-                            break;
-                        case "EQUALVERIFY":
-                            inputStack.op_equalverify();
-                            System.out.println("Processing EQUALVERIFY operation");
-                            break;
-                        case "CHECKSIG":
-                            inputStack.op_checksig();
-                            System.out.println("Processing CHECKSIG operation");
-                            break;
-                        default:
-                            System.out.println("Unknown operation: " + opcode);
-                            break;
-                    }
-
-                }
-                else {
-                    inputStack.push(scriptPubKeyOpcodes[i]);
-                }
-
-
-
-
+            if (currentUTXO.getScriptPubkey().getType().equals("p2sh")){
+                HandleP2SH.handleP2SH(inputStack);
+                System.out.println("p2sh transaction");
             }
+            // 스택을 통해 verify
+            inputStack = StackEngine.executeOPCODE(scriptPubKeyOpcodes, inputStack);
 
-            //밥먹고 할일 각 input마다 스택 보고 true false
+            if (inputStack.size() > 1 ){
+                if (inputStack.peek() == Boolean.toString(true)){
+                    validInput = true;
+                } else {
+                    validInput = false;
+                }
+            }
             // ecdsa도 다시
-
-
 
             System.out.println("input script stack after verify" + inputStack);
             if (inputStack.size() == 1) {
                 String verify = inputStack.pop();
             }
 
-
-
             if (!validInput) {
-                System.out.println("Input not found in UTXO set: " + input.getPreviousTxHash());
+                System.out.println("Input not valid: " + input.getPreviousTxHash());
                 return false;
             }
             System.out.println("Input succesfully validated");

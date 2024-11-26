@@ -39,7 +39,7 @@ public class OPCodeStack extends Stack<String> {
         String item1 = this.pop();
         String item2 = this.pop();
 
-        if (!item1.equals(item2)) {
+        if (item1.equals(item2)) {
             this.push("true");
         } else {
             this.push("false");
@@ -162,6 +162,7 @@ public class OPCodeStack extends Stack<String> {
         return (countValidSignatures >= required_signature_count);
 
     }
+
 
 
 

@@ -15,6 +15,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
 public class RPC {
+
     private final int port;
     private final Mempool mempool;
     private HttpServer server;
