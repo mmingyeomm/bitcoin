@@ -11,9 +11,8 @@ public class ExecutionEngine {
 
     public ExecutionEngine(Database database){
         this.database = database;
-
     }
-    Stack<String> stack = new Stack<>();
+
 
 
 

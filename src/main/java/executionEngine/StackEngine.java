@@ -6,59 +6,79 @@ public class StackEngine {
 
 
     public static OPCodeStack executeOPCODE (String[] scriptPubKeyOpcodes, OPCodeStack inputStack) throws Exception {
+
+
+
+        boolean if_true = true;
+        boolean skip= false;
+
         for (int i = 0; i < scriptPubKeyOpcodes.length; i++) {
-            if (scriptPubKeyOpcodes[i].startsWith("OP_") ){
+            System.out.println(inputStack);
+
+            if(skip && !scriptPubKeyOpcodes[i].startsWith("OP_ENDIF") && !scriptPubKeyOpcodes[i].startsWith("OP_ELSE")){
+                System.out.println("Skipping operation: " + scriptPubKeyOpcodes[i]);
+            }
+
+            else if (scriptPubKeyOpcodes[i].startsWith("OP_")  ) {
+
                 String opcode = scriptPubKeyOpcodes[i].substring(3); // "OP_" 이후의 문자열 추출
-                System.out.println("now" + inputStack);
+
                 switch (opcode) {
                     case "DUP":
-                        inputStack.op_dup();
                         System.out.println("Processing DUP operation");
+                        inputStack.op_dup();
                         break;
                     case "HASH160":
-                        inputStack.op_hash160();
                         System.out.println("Processing HASH160 operation");
+                        inputStack.op_hash160();
                         break;
                     case "EQUAL":
-                        inputStack.op_equal();
                         System.out.println("Processing EQUAL operation");
+                        inputStack.op_equal();
                         break;
                     case "EQUALVERIFY":
-                        inputStack.op_equalverify();
                         System.out.println("Processing EQUALVERIFY operation");
+                        inputStack.op_equalverify();
                         break;
                     case "CHECKMULTISIG":
                         System.out.println("Processing CHECKMULTISIG operation");
-
                         inputStack.op_checkmultisig();
                         break;
                     case "CHECKMULTISIGVERIFY":
-                        inputStack.op_checkmultisigverify();
                         System.out.println("Processing CHECKMULTISIGVERIFY operation");
+                        inputStack.op_checkmultisigverify();
                         break;
                     case "CHECKSIG":
-                        inputStack.op_checksig();
                         System.out.println("Processing CHECKSIG operation");
+                        inputStack.op_checksig();
                         break;
                     case "CHECKSIGVERIFY":
-                        inputStack.op_checksigverify();
                         System.out.println("Processing CHECKSIGVERIFY operation");
+                        inputStack.op_checksigverify();
                         break;
+
                     case "IF":
-                        inputStack.op_if();
+
                         System.out.println("Processing IF operation");
+                        if_true = inputStack.op_if();
+                        if (!if_true){
+                            skip = true;
+                        }
                         break;
                     case "ELSE":
-                        inputStack.op_else();
+                        if (if_true){
+                            System.out.println("ELSE WHEN TRUE");
+                            skip = true;
+                        } else {
+                            System.out.println("ELSE WHEN FALSE");
+                            skip = false;
+                        }
                         System.out.println("Processing ELSE operation");
+
                         break;
                     case "ENDIF":
-                        inputStack.op_endif();
                         System.out.println("Processing ENDIF operation");
                         break;
-
-
-
 
 
                     default:
@@ -68,7 +88,9 @@ public class StackEngine {
 
             }
             else {
-                inputStack.push(scriptPubKeyOpcodes[i]);
+                if(skip) { System.out.println("Skipping operation"); } else{
+                    inputStack.push(scriptPubKeyOpcodes[i]);
+                }
             }
 
 

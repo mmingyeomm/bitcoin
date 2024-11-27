@@ -5,7 +5,7 @@
       {
         "previous_tx_hash": "7b1eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f3f",
         "previous_output_index": 0,
-        "u  nlocking_script": {
+        "unlocking_script": {
           "scriptSig": [
             "<signature>",
             "<public key>"

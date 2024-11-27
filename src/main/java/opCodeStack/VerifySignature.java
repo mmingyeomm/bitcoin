@@ -9,7 +9,6 @@ public class VerifySignature {
         System.out.println("Verifying signature...");
         System.out.println(ECDSA.Digest(pubkey));
 
-
         return (ECDSA.Digest(pubkey).equals(sig));
 
     }

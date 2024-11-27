@@ -2,18 +2,16 @@ package opCodeStack;
 
 import java.util.Stack;
 
-
 public class OPCodeStack extends Stack<String> {
 
-    private boolean ifCondition = false;
-    private boolean inElseBlock = false;
-    private Stack<Boolean> ifStack = new Stack<>();
+    private boolean skip_else;
 
     public OPCodeStack() {
         super();
     }
 
     public void op_dup() {
+
         if (this.isEmpty()) {
             throw new IllegalStateException("OP_DUP: Stack is empty");
         }
@@ -48,11 +46,10 @@ public class OPCodeStack extends Stack<String> {
         } else {
             this.push("false");
         }
-
-
     }
 
     public boolean op_equalverify() {
+
         if (this.size() < 2) {
             throw new IllegalStateException("OP_EQUALVERIFY: Stack has fewer than 2 items");
         }
@@ -63,6 +60,7 @@ public class OPCodeStack extends Stack<String> {
     }
 
     public void op_checksig() throws Exception {
+
         if (this.size() < 2) {
             throw new IllegalStateException("OP_CHECKSIG: Stack has fewer than 2 items");
         }
@@ -77,18 +75,18 @@ public class OPCodeStack extends Stack<String> {
         } else {
             this.push("false");
         }
-
     }
 
     public boolean op_checksigverify() throws Exception {
+
         String pubkey = this.pop();
         String signature = this.pop();
 
-        return  VerifySignature.verifySignature(pubkey, signature);
+        return VerifySignature.verifySignature(pubkey, signature);
     }
 
     public void op_checkmultisig() throws Exception {
-        System.out.println("chekcing multisig...");
+
 
         if (this.size() < 1) {
             throw new IllegalStateException("OP_CHECKMULTISIG: Stack is empty");
@@ -108,12 +106,9 @@ public class OPCodeStack extends Stack<String> {
             input_signatures[required_signature_count-1 -i] = this.pop();
         }
 
-
         int countValidSignatures = 0;
         for (int i = 0; i < input_signatures.length; i++) {
-
             for (int j = i + 1; j < pubKeys.length; j++) {
-
                 if (VerifySignature.verifySignature(pubKeys[j], input_signatures[i])) {
                     countValidSignatures++;
                     break;
@@ -127,10 +122,10 @@ public class OPCodeStack extends Stack<String> {
         } else{
             this.push("false");
         }
-
     }
 
     public boolean op_checkmultisigverify() throws Exception {
+
         System.out.println("chekcing multisig...");
 
         if (this.size() < 1) {
@@ -153,9 +148,7 @@ public class OPCodeStack extends Stack<String> {
 
         int countValidSignatures = 0;
         for (int i = 0; i < input_signatures.length; i++) {
-
             for (int j = i + 1; j < pubKeys.length; j++) {
-
                 if (VerifySignature.verifySignature(pubKeys[j], input_signatures[i])) {
                     countValidSignatures++;
                     break;
@@ -164,46 +157,23 @@ public class OPCodeStack extends Stack<String> {
         }
 
         return (countValidSignatures >= required_signature_count);
-
     }
 
-    public void op_if() {
+    public boolean op_if() {
         if (this.isEmpty()) {
             throw new IllegalStateException("OP_IF: Stack is empty");
         }
 
-        String top = this.pop();
-        boolean condition = top.equals("true");
+        String condition = this.pop();
 
-        ifCondition = condition;
-        inElseBlock = false;
-        ifStack.push(ifCondition);
-    }
-
-    public void op_else() {
-        if (ifStack.isEmpty()) {
-            throw new IllegalStateException("OP_ELSE: No matching IF");
-        }
-
-        inElseBlock = true;
-        ifCondition = !ifStack.peek();
-    }
-
-    public void op_endif() {
-        if (ifStack.isEmpty()) {
-            throw new IllegalStateException("OP_ENDIF: No matching IF");
-        }
-
-        ifStack.pop();
-        if (!ifStack.isEmpty()) {
-            ifCondition = ifStack.peek();
+        if (condition.equals("true")) {
+            return true;
         } else {
-            ifCondition = false;
+            return false;
         }
-        inElseBlock = false;
+
+
     }
-
-
 
 
 
