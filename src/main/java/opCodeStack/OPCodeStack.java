@@ -5,6 +5,10 @@ import java.util.Stack;
 
 public class OPCodeStack extends Stack<String> {
 
+    private boolean ifCondition = false;
+    private boolean inElseBlock = false;
+    private Stack<Boolean> ifStack = new Stack<>();
+
     public OPCodeStack() {
         super();
     }
@@ -103,8 +107,7 @@ public class OPCodeStack extends Stack<String> {
         for (int i = 0; i < required_signature_count; i++) {
             input_signatures[required_signature_count-1 -i] = this.pop();
         }
-        // dummy 0 제거
-        this.pop();
+
 
         int countValidSignatures = 0;
         for (int i = 0; i < input_signatures.length; i++) {
@@ -117,7 +120,8 @@ public class OPCodeStack extends Stack<String> {
                 }
             }
         }
-
+        System.out.println(countValidSignatures);
+        System.out.println(required_signature_count);
         if (countValidSignatures >= required_signature_count) {
             this.push("true");
         } else{
@@ -163,6 +167,41 @@ public class OPCodeStack extends Stack<String> {
 
     }
 
+    public void op_if() {
+        if (this.isEmpty()) {
+            throw new IllegalStateException("OP_IF: Stack is empty");
+        }
+
+        String top = this.pop();
+        boolean condition = top.equals("true");
+
+        ifCondition = condition;
+        inElseBlock = false;
+        ifStack.push(ifCondition);
+    }
+
+    public void op_else() {
+        if (ifStack.isEmpty()) {
+            throw new IllegalStateException("OP_ELSE: No matching IF");
+        }
+
+        inElseBlock = true;
+        ifCondition = !ifStack.peek();
+    }
+
+    public void op_endif() {
+        if (ifStack.isEmpty()) {
+            throw new IllegalStateException("OP_ENDIF: No matching IF");
+        }
+
+        ifStack.pop();
+        if (!ifStack.isEmpty()) {
+            ifCondition = ifStack.peek();
+        } else {
+            ifCondition = false;
+        }
+        inElseBlock = false;
+    }
 
 
 

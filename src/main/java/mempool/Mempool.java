@@ -41,11 +41,9 @@ public class Mempool {
 
     private boolean ValidateTxInput(Transaction tx) throws Exception {
         //validate tx 함수가 좀 헤비한 감이 있다.
-
         System.out.println("validating tx Input...");
         List<Input> inputs = tx.getInputs();
         List<UTXO> utxos = database.getUTXOSet().getUtxos();
-
 
         for (Input input : inputs) {
             boolean validInput = false;
@@ -70,11 +68,13 @@ public class Mempool {
             String[] scriptPubKeyOpcodes = currentUTXO.getScriptPubkey().getAsm().split(" ");
 
             if (currentUTXO.getScriptPubkey().getType().equals("p2sh")){
-                HandleP2SH.handleP2SH(inputStack);
                 System.out.println("p2sh transaction");
+                inputStack = HandleP2SH.handleP2SH(inputStack);
+            } else {
+                inputStack = StackEngine.executeOPCODE(scriptPubKeyOpcodes, inputStack);
+                System.out.println("input script stack after verify" + inputStack);
             }
             // 스택을 통해 verify
-            inputStack = StackEngine.executeOPCODE(scriptPubKeyOpcodes, inputStack);
 
             if (inputStack.size() > 1 ){
                 if (inputStack.peek() == Boolean.toString(true)){
@@ -85,7 +85,6 @@ public class Mempool {
             }
             // ecdsa도 다시
 
-            System.out.println("input script stack after verify" + inputStack);
             if (inputStack.size() == 1) {
                 String verify = inputStack.pop();
             }
