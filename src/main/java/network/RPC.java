@@ -66,7 +66,7 @@ public class RPC {
                     // Convert JSON string to Transaction object
                     Transaction transaction = objectMapper.readValue(sb.toString(), Transaction.class);
 
-                    System.out.println("Sending to Mempool..");
+                    System.out.println("\nSending to Mempool..");
                     boolean added = mempool.addRequest(transaction); // Update this method to accept Transaction object
 
                     if (added) {

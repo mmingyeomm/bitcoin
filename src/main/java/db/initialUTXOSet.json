@@ -75,7 +75,7 @@
       "vout": 0,
       "amount": 1.0,
       "script_pubkey": {
-        "asm": "OP_HASH160 7ab89f9fae3f8043dcee5f7b5467a0f0a6e83f80 OP_EQUAL",
+        "asm": "OP_HASH160 12fb189309e8808e14cc6c054e22c70df83972cd OP_EQUAL",
         "hex": "a9147ab89f9fae3f8043dcee5f7b5467a0f0a6e83f8087",
         "type": "p2sh"
       }

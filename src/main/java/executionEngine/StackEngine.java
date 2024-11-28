@@ -7,8 +7,6 @@ public class StackEngine {
 
     public static OPCodeStack executeOPCODE (String[] scriptPubKeyOpcodes, OPCodeStack inputStack) throws Exception {
 
-
-
         boolean if_true = true;
         boolean skip= false;
 
@@ -78,6 +76,9 @@ public class StackEngine {
                         break;
                     case "ENDIF":
                         System.out.println("Processing ENDIF operation");
+                        // flag 다시 초기화
+                        if_true = true;
+                        skip= false;
                         break;
 
 
@@ -97,6 +98,12 @@ public class StackEngine {
 
         }
         return inputStack;
+
+    }
+
+    public static boolean isValid(OPCodeStack inputStack){
+
+        return inputStack.op_checkfinalresult();
 
     }
 }

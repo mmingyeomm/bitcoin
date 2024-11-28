@@ -1,7 +1,7 @@
 package mempool;
 
 import db.Database;
-import executionEngine.ExecutionEngine;
+import executionEngine.HandleP2SH;
 import executionEngine.StackEngine;
 import opCodeStack.OPCodeStack;
 import transaction.Input;
@@ -9,10 +9,8 @@ import transaction.Output;
 import transaction.Transaction;
 import utxo.UTXO;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 public class Mempool {
     private Database database;
@@ -28,7 +26,7 @@ public class Mempool {
         if (this.ValidateTxInput(tx) ){
                 this.AddtoMempool(tx);
 
-                System.out.println("view mempool");
+                System.out.println("view mempool: ");
                 this.viewMempool();
                 return true;
 
@@ -64,30 +62,26 @@ public class Mempool {
             for (int i = 0; i < input.getUnlockingScript().getScriptSig().size(); i++) {
                 inputStack.push(input.getUnlockingScript().getScriptSig().get(i));
             }
-            System.out.println("input script stack before verify" + inputStack);
             String[] scriptPubKeyOpcodes = currentUTXO.getScriptPubkey().getAsm().split(" ");
 
+
             if (currentUTXO.getScriptPubkey().getType().equals("p2sh")){
+                // P2SH tx 따로 처리
                 System.out.println("p2sh transaction");
-                inputStack = HandleP2SH.handleP2SH(inputStack);
+                inputStack = HandleP2SH.handleP2SH(scriptPubKeyOpcodes, inputStack);
             } else {
+                // P2PKH, MULTISIG tx 처리
                 inputStack = StackEngine.executeOPCODE(scriptPubKeyOpcodes, inputStack);
-                System.out.println("input script stack after verify" + inputStack);
             }
-            // 스택을 통해 verify
 
-            if (inputStack.size() > 1 ){
-                if (inputStack.peek() == Boolean.toString(true)){
-                    validInput = true;
-                } else {
-                    validInput = false;
-                }
+
+            if (StackEngine.isValid(inputStack)){
+                validInput = true;
+            } else {
+                validInput = false;
             }
+
             // ecdsa도 다시
-
-            if (inputStack.size() == 1) {
-                String verify = inputStack.pop();
-            }
 
             if (!validInput) {
                 System.out.println("Input not valid: " + input.getPreviousTxHash());

@@ -16,7 +16,6 @@ public class TransactionDeserializer extends JsonDeserializer<Transaction> {
 
     @Override
     public Transaction deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
-        System.out.println("Deserializer");
         ObjectMapper mapper = (ObjectMapper) p.getCodec();
 
         JsonNode node = mapper.readTree(p);

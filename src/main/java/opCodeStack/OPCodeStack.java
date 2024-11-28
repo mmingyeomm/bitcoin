@@ -87,7 +87,6 @@ public class OPCodeStack extends Stack<String> {
 
     public void op_checkmultisig() throws Exception {
 
-
         if (this.size() < 1) {
             throw new IllegalStateException("OP_CHECKMULTISIG: Stack is empty");
         }
@@ -115,8 +114,7 @@ public class OPCodeStack extends Stack<String> {
                 }
             }
         }
-        System.out.println(countValidSignatures);
-        System.out.println(required_signature_count);
+
         if (countValidSignatures >= required_signature_count) {
             this.push("true");
         } else{
@@ -175,6 +173,15 @@ public class OPCodeStack extends Stack<String> {
 
     }
 
+    public boolean op_checkfinalresult(){
+
+        if (this.size() != 1) {
+            throw new IllegalStateException("OP_CHECKFINALRESULT: Stack is not final");
+        }
+
+        String result = this.pop();
+        return result.equals("true");
+    }
 
 
 }
