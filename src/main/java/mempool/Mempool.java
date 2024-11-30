@@ -94,10 +94,17 @@ public class Mempool {
         return true;
     }
 
-
     private void AddtoMempool(Transaction tx){
         mempool.add(tx);
     }
+
+    public void DiscardTransaction(Transaction tx){
+        mempool.remove(tx);
+    }
+    public List<Transaction> getTransactions(){
+        return mempool;
+    }
+
     public void viewMempool() {
         if (mempool.isEmpty()) {
             System.out.println("Mempool is empty");
@@ -136,6 +143,10 @@ public class Mempool {
 
             System.out.println("\n----------------------------------------");
         }
+    }
+
+    public int size(){
+        return mempool.size();
     }
 
 }

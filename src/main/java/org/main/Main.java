@@ -16,7 +16,7 @@ public class Main {
 
         Mempool mempool = new Mempool(database);
 
-        ExecutionEngine executionEngine = new ExecutionEngine(database);
+        ExecutionEngine executionEngine = new ExecutionEngine(database, mempool);
 
         RPC rpc = new RPC(BITCOINPORT, mempool);
         rpc.start();

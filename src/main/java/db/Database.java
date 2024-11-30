@@ -22,24 +22,20 @@ public class Database {
 
     private void loadUTXOs() {
         try {
-
             String content = new String(Files.readAllBytes(Paths.get(DB_FILE)));
             JSONObject jsonObject = new JSONObject(content);
             JSONArray utxosArray = jsonObject.getJSONArray("utxos");
 
             List<UTXO> utxoList = new ArrayList<>();
 
-            // Parse each UTXO in the array
             for (int i = 0; i < utxosArray.length(); i++) {
                 JSONObject utxoJson = utxosArray.getJSONObject(i);
                 UTXO utxo = new UTXO();
 
-                // Set UTXO fields
                 utxo.setTxid(utxoJson.getString("txid"));
                 utxo.setVout(utxoJson.getInt("vout"));
                 utxo.setAmount(utxoJson.getDouble("amount"));
 
-                // Parse and set ScriptPubKey
                 JSONObject scriptPubKeyJson = utxoJson.getJSONObject("script_pubkey");
                 ScriptPubKey scriptPubKey = new ScriptPubKey();
                 scriptPubKey.setAsm(scriptPubKeyJson.getString("asm"));
@@ -55,10 +51,10 @@ public class Database {
 
         } catch (IOException e) {
             System.err.println("Error reading from file: " + e.getMessage());
-            utxoSet = new UTXOSet(); // Initialize empty UTXOSet in case of error
+            utxoSet = new UTXOSet();
         } catch (Exception e) {
             System.err.println("Error parsing JSON: " + e.getMessage());
-            utxoSet = new UTXOSet(); // Initialize empty UTXOSet in case of error
+            utxoSet = new UTXOSet();
         }
     }
 
@@ -66,7 +62,21 @@ public class Database {
         return utxoSet;
     }
 
-    public void saveUTXOs() {
-
+    public void removeUTXO(String txid) {
+        List<UTXO> currentUTXOs = utxoSet.getUtxos();
+        currentUTXOs.removeIf(utxo -> utxo.getTxid().equals(txid));
+        utxoSet = new UTXOSet(currentUTXOs);
+        System.out.println("UTXO removed: " + txid);
     }
+
+    public void updateUTXOSet(List<UTXO> newUTXOs) {
+        utxoSet = new UTXOSet(newUTXOs);
+        System.out.println("UTXOSet updated in memory");
+    }
+
+
+
+
+
+
 }

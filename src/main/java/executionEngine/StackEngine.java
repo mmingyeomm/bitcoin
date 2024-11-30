@@ -11,7 +11,8 @@ public class StackEngine {
         boolean skip= false;
 
         for (int i = 0; i < scriptPubKeyOpcodes.length; i++) {
-            System.out.println(inputStack);
+            // log stack
+            // System.out.println(inputStack);
 
             if(skip && !scriptPubKeyOpcodes[i].startsWith("OP_ENDIF") && !scriptPubKeyOpcodes[i].startsWith("OP_ELSE")){
                 System.out.println("Skipping operation: " + scriptPubKeyOpcodes[i]);
