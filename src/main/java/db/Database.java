@@ -2,6 +2,7 @@ package db;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import transaction.Transaction;
 import utxo.UTXO;
 import utxo.UTXOSet;
 import utxo.ScriptPubKey;
@@ -15,6 +16,8 @@ import java.util.List;
 public class Database {
     private static final String DB_FILE = "src/main/java/db/initialUTXOSet.json";
     private UTXOSet utxoSet;
+
+
 
     public Database() {
         loadUTXOs();
@@ -89,8 +92,6 @@ public class Database {
             utxoSet = new UTXOSet(currentUTXOs);
             System.out.println("Successfully removed " + removedCount + " UTXO(s) with txid: " + txid);
 
-            // UTXO set의 현재 상태 로깅
-            System.out.println("Current UTXO set size: " + sizeAfter);
 
         } catch (Exception e) {
             String errorMsg = "Error while removing UTXO with txid " + txid;
@@ -109,7 +110,7 @@ public class Database {
         boolean exists = currentUTXOs.stream()
                 .anyMatch(existing ->
                         existing.getTxid().equals(utxo.getTxid()) &&
-                                existing.getVout() == utxo.getVout()
+                                existing.getVout() == utxo.getVout() && existing.getAmount() == utxo.getAmount()
                 );
 
         if (!exists) {
@@ -120,15 +121,6 @@ public class Database {
             System.out.println("UTXO already exists: " + utxo.getTxid() + " (vout: " + utxo.getVout() + ")");
         }
     }
-
-    public void updateUTXOSet(List<UTXO> newUTXOs) {
-        utxoSet = new UTXOSet(newUTXOs);
-        System.out.println("UTXOSet updated in memory");
-    }
-
-
-
-
 
 
 }

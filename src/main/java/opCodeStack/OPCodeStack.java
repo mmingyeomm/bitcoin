@@ -4,8 +4,6 @@ import java.util.Stack;
 
 public class OPCodeStack extends Stack<String> {
 
-    private boolean skip_else;
-
     public OPCodeStack() {
         super();
     }
@@ -90,7 +88,6 @@ public class OPCodeStack extends Stack<String> {
         if (this.size() < 1) {
             throw new IllegalStateException("OP_CHECKMULTISIG: Stack is empty");
         }
-
         int total_pubkey_count = Integer.parseInt(this.pop());
         String[] pubKeys = new String[total_pubkey_count];
 
@@ -114,7 +111,6 @@ public class OPCodeStack extends Stack<String> {
                 }
             }
         }
-
         if (countValidSignatures >= required_signature_count) {
             this.push("true");
         } else{
@@ -183,5 +179,8 @@ public class OPCodeStack extends Stack<String> {
         return result.equals("true");
     }
 
-
 }
+
+
+
+

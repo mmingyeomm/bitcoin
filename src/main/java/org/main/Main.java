@@ -3,8 +3,9 @@ package org.main;
 import executionEngine.ExecutionEngine;
 import db.Database;
 import mempool.Mempool;
-import network.RPC;
+import network.Network;
 import queryprocessor.QueryProcessor;
+import transactionRecord.TransactionRecordList;
 
 import java.io.IOException;
 
@@ -15,17 +16,22 @@ public class Main {
 
         Database database = new Database();
 
-        Mempool mempool = new Mempool(database);
+        TransactionRecordList transactionRecordList = new TransactionRecordList();
+
+        Mempool mempool = new Mempool(database, transactionRecordList);
 
         ExecutionEngine executionEngine = new ExecutionEngine(database, mempool);
 
-        RPC rpc = new RPC(BITCOINPORT, mempool);
-        rpc.start();
-        QueryProcessor queryProcessor = new QueryProcessor(database, mempool);
+        Network network = new Network(BITCOINPORT, mempool);
+        network.start();
+        QueryProcessor queryProcessor = new QueryProcessor(database, transactionRecordList);
         queryProcessor.start();
 
-
     }
-
 }
+
+
+
+
+
 

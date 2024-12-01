@@ -2,6 +2,7 @@ package executionEngine;
 
 import db.Database;
 import mempool.Mempool;
+import opCodeStack.Hash160;
 import transaction.Input;
 import transaction.LockingScript;
 import transaction.Output;
@@ -18,7 +19,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class ExecutionEngine {
     private final Database database;
     private final Mempool mempool;
-    private static final int BATCH_SIZE = 2;
+    private static final int BATCH_SIZE = 1;
     private final ScheduledExecutorService scheduler;
     private boolean isRunning = true;
 
@@ -46,7 +47,7 @@ public class ExecutionEngine {
 
                     // 트랜잭션 처리
                     for (Transaction transaction : transactionsToProcess) {
-                        System.out.println("-------------- processing :" + transaction);
+                        System.out.println("-------------- processing-------------------\n" + transaction);
                         processTransaction(transaction);
                     }
 
@@ -85,18 +86,16 @@ public class ExecutionEngine {
         for (Input input : inputs) {
             database.removeUTXO(input.getPreviousTxHash());
 
-            System.out.println("removed item +" + input.getPreviousTxHash());
-            System.out.println(database.getUTXOSet().getUtxos());
         }
 
         String txid = calculateTXID(transaction);
+        System.out.println("new txid : " + txid);
 
         for (Output output : outputs) {
+
             UTXO newUTXO = createUTXO(txid, outputs.indexOf(output),  output);
 
             database.addUTXO(newUTXO);
-            System.out.println("added item +" + newUTXO.getTxid());
-            System.out.println(database.getUTXOSet().getUtxos());
 
         }
 
@@ -126,10 +125,10 @@ public class ExecutionEngine {
     }
 
 
-    // TXID 계산 메소드 (이전 구현 사용)
     private String calculateTXID(Transaction transaction) {
-        // 이전에 구현한 TXID 계산 로직
-        return ""; // 실제 구현 필요
+
+        return Hash160.calculateHash160(transaction.toString());
+
     }
 
     private String convertToAsm(LockingScript lockingScript) {
@@ -144,8 +143,7 @@ public class ExecutionEngine {
     }
 
     private String convertToHex(LockingScript lockingScript) {
-        // 스크립트를 hex로 변환하는 로직
-        return ""; // 실제 구현 필요
+        return "";
     }
 
     private String determineScriptType(LockingScript lockingScript) {

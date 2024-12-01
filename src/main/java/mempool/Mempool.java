@@ -3,10 +3,12 @@ package mempool;
 import db.Database;
 import executionEngine.HandleP2SH;
 import executionEngine.StackEngine;
+import opCodeStack.Hash160;
 import opCodeStack.OPCodeStack;
 import transaction.Input;
 import transaction.Output;
 import transaction.Transaction;
+import transactionRecord.TransactionRecordList;
 import utxo.UTXO;
 
 import java.util.ArrayList;
@@ -14,9 +16,12 @@ import java.util.List;
 
 public class Mempool {
     private Database database;
+    private TransactionRecordList transactionRecordList;
 
-    public Mempool(Database database){
+
+    public Mempool(Database database, TransactionRecordList transactionRecordList) {
         this.database = database;
+        this.transactionRecordList = transactionRecordList;
     }
 
     private List<Transaction> mempool = new ArrayList<>();
@@ -25,12 +30,16 @@ public class Mempool {
 
         if (this.ValidateTxInput(tx) ){
                 this.AddtoMempool(tx);
+            transactionRecordList.addRecord(Hash160.calculateHash160(tx.toString()), true);
 
-                System.out.println("view mempool: ");
+
+            System.out.println("view mempool: ");
                 this.viewMempool();
                 return true;
 
         } else {
+            transactionRecordList.addRecord(Hash160.calculateHash160(tx.toString()), false);
+
             System.out.println("transaction validation failed");
             return false;
         }

@@ -14,13 +14,13 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
-public class RPC {
+public class Network {
 
     private final int port;
     private final Mempool mempool;
     private HttpServer server;
 
-    public RPC(int port, Mempool mempool) {
+    public Network(int port, Mempool mempool) {
         this.port = port;
         this.mempool = mempool;
     }
