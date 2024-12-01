@@ -26,7 +26,7 @@ public class QueryProcessor {
 
             switch (command.toLowerCase()) {
                 case "snapshot transactions":
-                    showTransactionSnapshot();
+//                    showTransactionSnapshot();
                     break;
                 case "snapshot utxoset":
                     showUTXOSetSnapshot();
@@ -45,21 +45,21 @@ public class QueryProcessor {
         scanner.close();
     }
 
-    private void showTransactionSnapshot() {
-        List<TransactionRecord> processedTxs = database.getProcessedTransactions();
-
-        if (processedTxs.isEmpty()) {
-            System.out.println("No processed transactions yet.");
-            return;
-        }
-
-        System.out.println("Processed Transactions:");
-        for (TransactionRecord tx : processedTxs) {
-            System.out.printf("transaction: %s, validity check: %s%n",
-                    tx.getTxid(),
-                    tx.isValid() ? "passed" : "failed");
-        }
-    }
+//    private void showTransactionSnapshot() {
+//        List<TransactionRecord> processedTxs = database.getProcessedTransactions();
+//
+//        if (processedTxs.isEmpty()) {
+//            System.out.println("No processed transactions yet.");
+//            return;
+//        }
+//
+//        System.out.println("Processed Transactions:");
+//        for (TransactionRecord tx : processedTxs) {
+//            System.out.printf("transaction: %s, validity check: %s%n",
+//                    tx.getTxid(),
+//                    tx.isValid() ? "passed" : "failed");
+//        }
+//    }
 
     private void showUTXOSetSnapshot() {
         List<UTXO> utxos = database.getUTXOSet().getUtxos();

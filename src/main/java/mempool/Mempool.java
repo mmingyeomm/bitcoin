@@ -101,6 +101,7 @@ public class Mempool {
     public void DiscardTransaction(Transaction tx){
         mempool.remove(tx);
     }
+
     public List<Transaction> getTransactions(){
         return mempool;
     }

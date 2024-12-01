@@ -4,6 +4,7 @@ import executionEngine.ExecutionEngine;
 import db.Database;
 import mempool.Mempool;
 import network.RPC;
+import queryprocessor.QueryProcessor;
 
 import java.io.IOException;
 
@@ -20,6 +21,8 @@ public class Main {
 
         RPC rpc = new RPC(BITCOINPORT, mempool);
         rpc.start();
+        QueryProcessor queryProcessor = new QueryProcessor(database, mempool);
+        queryProcessor.start();
 
 
     }

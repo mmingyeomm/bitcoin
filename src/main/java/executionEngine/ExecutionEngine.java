@@ -9,7 +9,6 @@ import transaction.Transaction;
 import utxo.ScriptPubKey;
 import utxo.UTXO;
 import utxo.UTXOSet;
-import script.ScriptPubKey;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +18,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class ExecutionEngine {
     private final Database database;
     private final Mempool mempool;
-    private static final int BATCH_SIZE = 5;
+    private static final int BATCH_SIZE = 2;
     private final ScheduledExecutorService scheduler;
     private boolean isRunning = true;
 
@@ -37,12 +36,24 @@ public class ExecutionEngine {
                 if (mempool.size() >= BATCH_SIZE) {
                     System.out.println("Executing batch of transactions...");
 
-                    for (int i = 0; i < BATCH_SIZE; i++) {
-                        Transaction transaction = mempool.getTransactions().get(i);
-                        processTransaction(transaction);
-                        removeFromMempool(transaction);
+                    // 처리할 트랜잭션들을 먼저 리스트로 복사
+                    List<Transaction> transactionsToProcess = new ArrayList<>();
+                    synchronized(mempool) {
+                        for (int i = 0; i < BATCH_SIZE && i < mempool.getTransactions().size(); i++) {
+                            transactionsToProcess.add(mempool.getTransactions().get(i));
+                        }
                     }
+
+                    // 트랜잭션 처리
+                    for (Transaction transaction : transactionsToProcess) {
+                        System.out.println("-------------- processing :" + transaction);
+                        processTransaction(transaction);
+                    }
+
+                    // mempool에서 제거
+                    removeFromMempool(transactionsToProcess);
                 }
+
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
@@ -55,37 +66,47 @@ public class ExecutionEngine {
     }
 
     private void processTransaction(Transaction transaction) {
-        UTXOSet currentUtxoSet = database.getUTXOSet();
-        List<UTXO> updatedUTXOs = new ArrayList<>(currentUtxoSet.getUtxos());
+        List<UTXO> currentUtxos = database.getUTXOSet().getUtxos();
+        List<Input> currentInputs = transaction.getInputs();
+        List<Input> inputs = new ArrayList<>();
+        List<Output> outputs =  transaction.getOutputs();
 
-        for (Input input : transaction.getInputs()) {
-            String prevTxHash = input.getPreviousTxHash();
-            updatedUTXOs.removeIf(utxo -> utxo.getTxid().equals(prevTxHash));
+
+
+        for (UTXO utxo : currentUtxos) {
+            for (Input input : currentInputs) {
+                 if (utxo.getTxid().equals(input.getPreviousTxHash())){
+                    inputs.add(input);
+                    break;
+                 }
+            }
+        }
+
+        for (Input input : inputs) {
+            database.removeUTXO(input.getPreviousTxHash());
+
+            System.out.println("removed item +" + input.getPreviousTxHash());
+            System.out.println(database.getUTXOSet().getUtxos());
         }
 
         String txid = calculateTXID(transaction);
-        for (int i = 0; i < transaction.getOutputs().size(); i++) {
-            Output output = transaction.getOutputs().get(i);
-            UTXO newUTXO = createUTXO(txid, i, output);
-            updatedUTXOs.add(newUTXO);
+
+        for (Output output : outputs) {
+            UTXO newUTXO = createUTXO(txid, outputs.indexOf(output),  output);
+
+            database.addUTXO(newUTXO);
+            System.out.println("added item +" + newUTXO.getTxid());
+            System.out.println(database.getUTXOSet().getUtxos());
+
         }
-        database.updateUTXOSet(updatedUTXOs);
+
     }
 
-    private void removeSpentUTXOs(List<UTXO> currentUTXOs, Transaction transaction) {
-        for (Input input : transaction.getInputs()) {
-            String prevTxHash = input.getPreviousTxHash();
-            currentUTXOs.removeIf(utxo -> utxo.getTxid().equals(prevTxHash));
-        }
-    }
-
-    private void addNewUTXOs(List<UTXO> currentUTXOs, Transaction transaction) {
-        String txid = calculateTXID(transaction);
-
-        for (int i = 0; i < transaction.getOutputs().size(); i++) {
-            Output output = transaction.getOutputs().get(i);
-            UTXO newUTXO = createUTXO(txid, i, output);
-            currentUTXOs.add(newUTXO);
+    private void removeFromMempool(List<Transaction> transactions) {
+        synchronized(mempool) {
+            for (Transaction transaction : transactions) {
+                mempool.DiscardTransaction(transaction);
+            }
         }
     }
 
@@ -104,10 +125,6 @@ public class ExecutionEngine {
         return utxo;
     }
 
-    private void removeFromMempool(Transaction transaction) {
-        mempool.getTransactions().remove(transaction);
-
-    }
 
     // TXID 계산 메소드 (이전 구현 사용)
     private String calculateTXID(Transaction transaction) {
