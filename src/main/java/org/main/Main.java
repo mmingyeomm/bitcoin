@@ -9,7 +9,7 @@ import transactionRecord.TransactionRecordList;
 
 import java.io.IOException;
 
-
+// 안녕
 public class Main {
     private static final int BITCOINPORT = 8545;
     public static void main(String[] args) throws IOException {
